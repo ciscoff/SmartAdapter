@@ -1,0 +1,3 @@
+include ':SmartAdapter'
+include ':app'
+rootProject.name = "SmartAdapter"
