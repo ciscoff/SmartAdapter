@@ -8,16 +8,12 @@ def githubProperties = new Properties()
 githubProperties.load(new FileInputStream(rootProject.file("github.properties")))
 
 def getVersionName = { ->
-    return "1.1"
+    return "1.1.2"
 }
 
 // Не используй заглавные буквы
-def getArtificatId = { ->
+def getArtifactId = { ->
     return "smartadapter"
-}
-
-def getAlias = { ->
-    return "SmartAdapter"
 }
 
 task sourceJar(type: Jar) {
@@ -41,9 +37,36 @@ publishing {
     publications {
         smartAdapter(MavenPublication) {
             groupId 's.yarlykov.lib'
-            artifactId getArtificatId()
+            artifactId getArtifactId()
             version getVersionName()
-            artifact("$buildDir/outputs/aar/${getAlias()}-release.aar")
+            artifact("$buildDir/outputs/aar/${getArtifactId()}-release.aar")
+
+            pom.withXml {
+                final dependenciesNode = asNode().appendNode('dependencies')
+                ext.addDependency = { Dependency dep, String scope ->
+                    if (dep.group == null || dep.version == null || dep.name == null || dep.name == "unspecified")
+                        return
+                    final dependencyNode = dependenciesNode.appendNode('dependency')
+                    dependencyNode.appendNode('groupId', dep.group)
+                    dependencyNode.appendNode('artifactId', dep.name)
+                    dependencyNode.appendNode('version', dep.version)
+                    dependencyNode.appendNode('scope', scope)
+                    if (!dep.transitive) {
+                        final exclusionNode = dependencyNode.appendNode('exclusions').appendNode('exclusion')
+                        exclusionNode.appendNode('groupId', '*')
+                        exclusionNode.appendNode('artifactId', '*')
+                    } else if (!dep.properties.excludeRules.empty) {
+                        final exclusionNode = dependencyNode.appendNode('exclusions').appendNode('exclusion')
+                        dep.properties.excludeRules.each { ExcludeRule rule ->
+                            exclusionNode.appendNode('groupId', rule.group ?: '*')
+                            exclusionNode.appendNode('artifactId', rule.module ?: '*')
+                        }
+                    }
+                }
+                configurations.compile.getDependencies().each { dep -> addDependency(dep, "compile") }
+                configurations.api.getDependencies().each { dep -> addDependency(dep, "compile") }
+                configurations.implementation.getDependencies().each { dep -> addDependency(dep, "runtime") }
+            }
         }
     }
 }
