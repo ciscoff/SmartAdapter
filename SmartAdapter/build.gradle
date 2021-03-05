@@ -8,16 +8,21 @@ def githubProperties = new Properties()
 githubProperties.load(new FileInputStream(rootProject.file("github.properties")))
 
 def getVersionName = { ->
-    return "1.0"
+    return "1.1"
 }
 
 // Не используй заглавные буквы
 def getArtificatId = { ->
-    return "smart_adapter"
+    return "smartadapter"
 }
 
 def getAlias = { ->
     return "SmartAdapter"
+}
+
+task sourceJar(type: Jar) {
+    from android.sourceSets.main.java.srcDirs
+    classifier "sources"
 }
 
 publishing {
@@ -35,7 +40,7 @@ publishing {
 
     publications {
         smartAdapter(MavenPublication) {
-            groupId 's.yarlykov.lib.smartadapter'
+            groupId 's.yarlykov.lib'
             artifactId getArtificatId()
             version getVersionName()
             artifact("$buildDir/outputs/aar/${getAlias()}-release.aar")
@@ -51,7 +56,7 @@ android {
         minSdkVersion 22
         targetSdkVersion 30
         versionCode 1
-        versionName "1.0"
+        versionName getVersionName()
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
