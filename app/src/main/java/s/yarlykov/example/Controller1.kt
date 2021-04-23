@@ -2,6 +2,7 @@ package s.yarlykov.example
 
 import android.view.ViewGroup
 import androidx.annotation.LayoutRes
+import s.yarlykov.lib.smartadapter.adapter.Collector
 import s.yarlykov.lib.smartadapter.controller.BindableItemController
 import s.yarlykov.lib.smartadapter.model.item.BindableItem
 
@@ -17,7 +18,7 @@ class Controller1(@LayoutRes val layoutRes: Int) : BindableItemController<TextMo
         bind(holder, item.data)
     }
 
-    override fun createViewHolder(parent: ViewGroup): ViewHolder1 {
+    override fun createViewHolder(parent: ViewGroup, eventCollector: Collector?): ViewHolder1 {
         return ViewHolder1(parent, layoutRes)
     }
 

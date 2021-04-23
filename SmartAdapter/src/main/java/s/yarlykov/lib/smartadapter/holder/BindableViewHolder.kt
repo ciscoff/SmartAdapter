@@ -3,16 +3,20 @@ package s.yarlykov.lib.smartadapter.holder
 import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.LayoutRes
+import s.yarlykov.lib.smartadapter.adapter.Collector
 
 abstract class BindableViewHolder<in T> : BaseViewHolder {
 
     constructor(
         recyclerView: ViewGroup,
         @LayoutRes layoutId: Int,
-        callback: SmartCallback<*>? = null
-    ) : super(recyclerView, layoutId, callback)
+        eventCollector: Collector? = null
+    ) : super(recyclerView, layoutId, eventCollector)
 
-    constructor(itemView: View, callback: SmartCallback<*>? = null) : super(itemView, callback)
+    constructor(
+        itemView: View,
+        eventCollector: Collector? = null
+    ) : super(itemView, eventCollector)
 
     abstract fun bind(data: T)
 }

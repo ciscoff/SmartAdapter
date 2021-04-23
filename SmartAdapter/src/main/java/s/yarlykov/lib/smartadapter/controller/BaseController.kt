@@ -1,6 +1,7 @@
 package s.yarlykov.lib.smartadapter.controller
 
 import android.view.ViewGroup
+import s.yarlykov.lib.smartadapter.adapter.Collector
 import s.yarlykov.lib.smartadapter.holder.BaseViewHolder
 import s.yarlykov.lib.smartadapter.model.item.BaseItem
 
@@ -16,7 +17,7 @@ import s.yarlykov.lib.smartadapter.model.item.BaseItem
  */
 abstract class BaseController<H : BaseViewHolder, I : BaseItem<H>> {
 
-    abstract fun createViewHolder(parent: ViewGroup): H
+    abstract fun createViewHolder(parent: ViewGroup, eventCollector: Collector?): H
 
     /**
      * Адаптер вызывает этот метод и "знакомит" контроллер с его контейнером (Item).

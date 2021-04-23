@@ -5,30 +5,19 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.LayoutRes
 import androidx.recyclerview.widget.RecyclerView
-import io.reactivex.Observable
-import io.reactivex.subjects.PublishSubject
+import s.yarlykov.lib.smartadapter.adapter.Collector
 
 abstract class BaseViewHolder : RecyclerView.ViewHolder {
 
     /**
-     * star-projection 'in: Nothing, out : Any?'
-     *
-     * Наследники могут принимать и отдавать что угодно.
+     * Каналы отправки сообщений подписчикам (альтернатива callback'у)
      */
-    var callback: SmartCallback<*>? = null
-
-    /**
-     * Канал отправки сообщений подписчикам (альтернатива callback'у)
-     */
-    private val events = PublishSubject.create<EventWrapper<Any>>()
-    val eventsObservable: Observable<EventWrapper<Any>> by lazy {
-        events.hide()
-    }
+    protected var eventCollector: Collector? = null
 
     constructor(
         parent: ViewGroup,
         @LayoutRes layoutId: Int,
-        callback: SmartCallback<*>? = null
+        eventCollector: Collector? = null
     ) : super(
         LayoutInflater.from(parent.context)
             .inflate(
@@ -37,16 +26,29 @@ abstract class BaseViewHolder : RecyclerView.ViewHolder {
                 false
             )
     ) {
-        this.callback = callback
+        this.eventCollector = eventCollector
     }
 
-    constructor(itemView: View, callback: SmartCallback<*>? = null) : super(itemView) {
-        this.callback = callback
+    constructor(
+        parent: ViewGroup,
+        view: View,
+        eventCollector: Collector? = null
+    ) : super(view) {
+        this.eventCollector = eventCollector
+    }
+
+    constructor(
+        itemView: View,
+        eventCollector: Collector? = null
+    ) : super(itemView) {
+        this.eventCollector = eventCollector
     }
 
     /**
      * Когда view инвалидируется, то адаптер вызовет этот метод для очистки ресурсов
      * из своего onViewRecycled
      */
-    open fun clear() {}
+    open fun clear() {
+        eventCollector = null
+    }
 }

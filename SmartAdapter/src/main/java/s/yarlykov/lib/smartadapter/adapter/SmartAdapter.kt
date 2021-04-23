@@ -4,11 +4,13 @@ import android.util.SparseArray
 import android.view.ViewGroup
 import androidx.core.util.set
 import androidx.recyclerview.widget.RecyclerView
-import io.reactivex.Observable
 import io.reactivex.subjects.PublishSubject
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import s.yarlykov.lib.smartadapter.controller.BaseController
 import s.yarlykov.lib.smartadapter.holder.BaseViewHolder
 import s.yarlykov.lib.smartadapter.holder.EventWrapper
+import s.yarlykov.lib.smartadapter.holder.SmartCallback
 import s.yarlykov.lib.smartadapter.model.SmartList
 import s.yarlykov.lib.smartadapter.model.item.BaseItem
 
@@ -25,7 +27,8 @@ import s.yarlykov.lib.smartadapter.model.item.BaseItem
  * - Binding: адаптер передает контроллеру созданный ранее холдер и ссылку на Item.
  */
 
-class SmartAdapter : RecyclerView.Adapter<BaseViewHolder>() {
+class SmartAdapter(private val callback: SmartCallback<Any?>? = null) :
+    RecyclerView.Adapter<BaseViewHolder>() {
 
     /**
      * Модель данных
@@ -33,26 +36,45 @@ class SmartAdapter : RecyclerView.Adapter<BaseViewHolder>() {
     private val model = SmartList()
 
     /**
-     * EventBus в виде Subject'а для ретрансляции сообщений от ViewHolder'ов.
-     */
-    private val events = PublishSubject.create<EventWrapper<Any>>()
-    val eventBus: Observable<EventWrapper<Any>> by lazy {
-        events.hide()
-    }
-
-    /**
      * Список контроллеров для текущей модели данных
      */
     private val supportedControllers = SparseArray<BaseController</*H*/*, /*I*/*>>()
 
     /**
+     * Рестрансляторы событий от ViewHolder'ов. События можно отправлять тремя способами:
+     * - rx relay
+     * - shared flow
+     * - callback
+     */
+    private val collector = object : Collector, SmartCallback<Any?> {
+
+        override val collectorRx: PublishSubject<EventWrapper<Any>> by lazy {
+            PublishSubject.create()
+        }
+
+        override val collectorFlow: MutableSharedFlow<EventWrapper<Any>> by lazy {
+            MutableSharedFlow()
+        }
+
+        override val smartCallback: SmartCallback<Any?> = this
+
+        override fun call(arg: Any?) {
+            callback?.call(arg)
+        }
+    }
+
+    /**
+     * Поставщики данных внешним потребителям
+     */
+    val eventBus = collector.collectorRx.hide()
+
+    val eventFlow = collector.collectorFlow.asSharedFlow()
+
+    /**
      * Создаем ViewHolder и привязываем его к шине данных.
      */
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BaseViewHolder {
-
-        return supportedControllers[viewType].createViewHolder(parent).apply {
-            eventsObservable.subscribe(events)
-        }
+        return supportedControllers[viewType].createViewHolder(parent, collector)
     }
 
     /**
