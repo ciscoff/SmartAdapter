@@ -1,6 +1,7 @@
 package s.yarlykov.lib.smartadapter.controller
 
 import android.view.ViewGroup
+import androidx.recyclerview.widget.RecyclerView
 import s.yarlykov.lib.smartadapter.adapter.Collector
 import s.yarlykov.lib.smartadapter.holder.BaseViewHolder
 import s.yarlykov.lib.smartadapter.model.item.BaseItem
@@ -25,4 +26,13 @@ abstract class BaseController<H : BaseViewHolder, I : BaseItem<H>> {
      */
     abstract fun bind(holder: H, item: I)
     abstract fun viewType(): Int
+
+    /**
+     * Для работы с  DiffUtils
+     */
+    open fun getItemId(item: I): String {
+        return RecyclerView.NO_ID.toString()
+    }
+
+    abstract fun getItemHash(item: I): String
 }

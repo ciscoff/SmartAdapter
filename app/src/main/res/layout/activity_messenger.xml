@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/gray_A100"
+    android:paddingStart="@dimen/d_padding_8dp"
+    android:paddingEnd="@dimen/d_padding_8dp">
+
+    <!-- TODO LinearLayout плохо выравниват текст по вертикали -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/control_bar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:minHeight="?attr/actionBarSize"
+        android:orientation="horizontal"
+        android:padding="@dimen/d_padding_16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/control_bar_title"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:gravity="start|center_vertical"
+            android:text="@string/notification_no_new"
+            android:textColor="@color/ds_text_headline"
+            android:textSize="22sp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="Нет новых" />
+
+        <TextView
+            android:id="@+id/control_bar_action"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:gravity="end|center_vertical"
+            android:text="@string/notification_center_read_all"
+            android:textColor="@color/ds_mts_red"
+            android:textSize="12sp"
+            app:layout_constraintBaseline_toBaselineOf="@id/control_bar_title"
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:text="Удалить все" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_view_unc"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/control_bar" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

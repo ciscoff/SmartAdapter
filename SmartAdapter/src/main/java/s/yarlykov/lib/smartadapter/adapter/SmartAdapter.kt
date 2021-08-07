@@ -3,14 +3,16 @@ package s.yarlykov.lib.smartadapter.adapter
 import android.util.SparseArray
 import android.view.ViewGroup
 import androidx.core.util.set
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import io.reactivex.subjects.PublishSubject
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import s.yarlykov.lib.smartadapter.controller.BaseController
 import s.yarlykov.lib.smartadapter.holder.BaseViewHolder
-import s.yarlykov.lib.smartadapter.holder.EventWrapper
-import s.yarlykov.lib.smartadapter.holder.SmartCallback
+import s.yarlykov.lib.smartadapter.events.EventWrapper
+import s.yarlykov.lib.smartadapter.events.SmartCallback
 import s.yarlykov.lib.smartadapter.model.SmartList
 import s.yarlykov.lib.smartadapter.model.item.BaseItem
 
@@ -25,15 +27,39 @@ import s.yarlykov.lib.smartadapter.model.item.BaseItem
  * Для создания ViewHolder'а и binding'а адаптер использует контроллер Item'а.
  * - Создание холдера: контроллер инфлейтит view с помощью layoutId, создает и возвращает холдер.
  * - Binding: адаптер передает контроллеру созданный ранее холдер и ссылку на Item.
+ *
+ * Адаптер предоставляет три спооба получения событий из элементов списка:
+ * - Callback
+ * - SharedFlow
+ * - Observer Rx
+ *
+ * @property callback - callback отправки событий из элементов списка.
+ * @property eventsReplay - количество сообщений, повторяемых новым подписчикам collectorFlow
+ * @property overflowStrategy - поведение при переполненном буфере collectorFlow
  */
 
-class SmartAdapter(private val callback: SmartCallback<Any?>? = null) :
-    RecyclerView.Adapter<BaseViewHolder>() {
+class SmartAdapter(
+    private val callback: SmartCallback<Any?>? = null,
+    private val eventsReplay: Int = 1,
+    private val overflowStrategy: BufferOverflow = BufferOverflow.DROP_OLDEST
+) : RecyclerView.Adapter<BaseViewHolder>() {
 
     /**
      * Модель данных
      */
     private val model = SmartList()
+
+    /**
+     * Режим обновления модели адаптера:
+     * - true: с помощью DiffUtil
+     * - false: через методы notify из внешнего кода
+     */
+    var isAutoNotify: Boolean = true
+
+    /**
+     * Мета-данные об элементах модели (используется в DiffUtil.Callback)
+     */
+    private var lastItemsInfo = ArrayList<ItemInfo>()
 
     /**
      * Список контроллеров для текущей модели данных
@@ -53,7 +79,10 @@ class SmartAdapter(private val callback: SmartCallback<Any?>? = null) :
         }
 
         override val collectorFlow: MutableSharedFlow<EventWrapper<Any>> by lazy {
-            MutableSharedFlow()
+            MutableSharedFlow(
+                replay = eventsReplay,
+                onBufferOverflow = overflowStrategy
+            )
         }
 
         override val smartCallback: SmartCallback<Any?> = this
@@ -119,9 +148,38 @@ class SmartAdapter(private val callback: SmartCallback<Any?>? = null) :
             addAll(smartList)
         }
 
-        // Обновить контроллеры
+        // Обновить модель...
+        if (isAutoNotify) {
+            autoNotify()
+        }
+        // ...и контроллеры
         updateControllers()
-        notifyDataSetChanged()
+    }
+
+    /**
+     * Для обновления контента используем DiffUtil.Callback, который сравнивает не сами
+     * элементы модели, а метаданные элементов, представленные объектами ItemInfo.
+     *
+     * См. [ItemInfo]
+     */
+    private fun autoNotify() {
+        val newItemInfo = extractItemsInfo()
+        val diffResult =
+            DiffUtil.calculateDiff(AutoNotifyDiffCallback(lastItemsInfo, newItemInfo), false)
+        diffResult.dispatchUpdatesTo(this)
+        lastItemsInfo = newItemInfo
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun extractItemsInfo(): ArrayList<ItemInfo> {
+
+        return ArrayList(model.map {
+            val item = it as BaseItem<BaseViewHolder>
+            ItemInfo(
+                item.controller.getItemId(item),
+                item.controller.getItemHash(item)
+            )
+        })
     }
 
     /**
@@ -132,6 +190,38 @@ class SmartAdapter(private val callback: SmartCallback<Any?>? = null) :
         supportedControllers.apply {
             clear()
             model.forEach { item -> this[item.controller.viewType()] = item.controller }
+        }
+    }
+
+    /**
+     * DiffUtil.Callback
+     *
+     * @property lastItemsInfo - предыдущее состояние
+     * @property newItemsInfo - новое состояние
+     */
+    class AutoNotifyDiffCallback(
+        private val lastItemsInfo: List<ItemInfo>,
+        private val newItemsInfo: List<ItemInfo>
+    ) : DiffUtil.Callback() {
+
+        override fun getOldListSize(): Int = lastItemsInfo.size
+
+        override fun getNewListSize(): Int = newItemsInfo.size
+
+        override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+            return try {
+                lastItemsInfo[oldItemPosition].id == newItemsInfo[newItemPosition].id
+            } catch (e: ArrayIndexOutOfBoundsException) {
+                false
+            }
+        }
+
+        override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
+            return try {
+                lastItemsInfo[oldItemPosition].hash == newItemsInfo[newItemPosition].hash
+            } catch (e: ArrayIndexOutOfBoundsException) {
+                false
+            }
         }
     }
 }

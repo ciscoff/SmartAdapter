@@ -14,6 +14,22 @@
     <color name="gray_A700">#A5A1A1</color>
     <color name="gray_A400">#8A8383</color>
 
-    <color name="colorPinkLight">#F6E4E9</color>
+    <color name="color_pink_light">#F6E4E9</color>
+
+    <color name="ds_mts_red">#e30611</color>
+    <color name="ds_text_headline">#000000</color>
+
+    <color name="ds_icon_primary">#000000</color>
+    <color name="ds_icon_secondary">#969FA8</color>
+    <color name="ds_icon_tertiary">#BBC1C7</color>
+    <color name="ds_icon_positive">#26CD58</color>
+    <color name="ds_icon_negative">#F95721</color>
+    <color name="ds_icon_primary_active">#E30611</color>
+    <color name="ds_icon_inverted">#FFFFFF</color>
+    <color name="ds_icon_tertiary_active">#F2F3F7</color>
+
+    <!--sticky decorator-->
+    <color name="sticky_background">#88B9B5B5</color>
+    <color name="sticky_text">#444444</color>
 
 </resources>

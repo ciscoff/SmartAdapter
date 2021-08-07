@@ -1,4 +1,4 @@
-package s.yarlykov.example
+package s.yarlykov.example.arch
 
 import android.view.ViewGroup
 import androidx.annotation.LayoutRes
@@ -23,4 +23,8 @@ class Controller1(@LayoutRes val layoutRes: Int) : BindableItemController<TextMo
     }
 
     override fun viewType(): Int = layoutRes
+
+    override fun getItemId(data: TextModel): String {
+        return ""
+    }
 }

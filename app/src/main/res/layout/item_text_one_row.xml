@@ -6,7 +6,7 @@
     android:orientation="horizontal"
     android:layout_height="?attr/actionBarSize">
 
-    <s.yarlykov.lib.smartadapter.ui.StubView
+    <s.yarlykov.lib.smartadapter.widgets.StubView
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:layout_gravity="center"

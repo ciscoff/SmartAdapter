@@ -6,4 +6,13 @@
         <attr name="stubColor" format="reference" />
     </declare-styleable>
 
+    <declare-styleable name="ShimmerLayout">
+        <attr name="shimmer_color" format="color|reference" />
+        <attr name="shimmer_angle" format="integer|reference" />
+        <attr name="shimmer_duration" format="integer|reference" />
+        <attr name="shimmer_width_ratio" format="float|reference" />
+        <attr name="shimmer_reverse_animation" format="boolean|reference" />
+        <attr name="shimmer_gradient_width_ratio" format="float|reference" />
+    </declare-styleable>
+
 </resources>

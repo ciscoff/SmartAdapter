@@ -4,4 +4,17 @@
     <string name="text_header_one_row" translatable="false">One Row</string>
     <string name="text_header_two_rows" translatable="false">Two Rows</string>
     <string name="text_footer" translatable="false">Text Footer</string>
+
+    <string name="notification_center_for_all_numbers">For All Numbers</string>
+    <string name="notification_delete_all">Delete all</string>
+    <string name="notification_new_count">%1$d new</string>
+    <string name="notification_no_new">No new posts</string>
+    <string name="notification_center_read_all">Mark everything as read</string>
+    <string name="notification_center_no_notifications">You have no notifications</string>
+
+    <string name="notification_done">Read</string>
+    <string name="notification_clear">Delete</string>
+
+    <string name="common_update">Update</string>
+
 </resources>

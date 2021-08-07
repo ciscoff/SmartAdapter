@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/lower_layer"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@android:color/holo_blue_dark"
+    android:minHeight="?attr/actionBarSize">
+
+    <TextView
+        android:id="@+id/action_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="start|center_vertical"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:clickable="true"
+        android:drawableTop="@drawable/ic_done"
+        android:drawablePadding="@dimen/d_padding_1dp"
+        android:focusable="true"
+        android:gravity="center"
+        android:layout_marginStart="@dimen/d_margin_16dp"
+        android:text="@string/notification_done"
+        android:textColor="@android:color/white"
+        android:textSize="12sp"
+        tools:text="Прочитано" />
+
+    <TextView
+        android:id="@+id/cancel_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|center_vertical"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:clickable="true"
+        android:drawableTop="@drawable/ic_clear"
+        android:drawablePadding="@dimen/d_padding_1dp"
+        android:focusable="true"
+        android:gravity="center"
+        android:layout_marginEnd="@dimen/d_margin_16dp"
+        android:text="@string/notification_clear"
+        android:textColor="@android:color/white"
+        android:textSize="12sp"
+        tools:text="Удалить" />
+
+</FrameLayout>

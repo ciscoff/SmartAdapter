@@ -1,4 +1,4 @@
-package s.yarlykov.example
+package s.yarlykov.example.arch
 
 import s.yarlykov.lib.smartadapter.controller.BindableItemController
 import s.yarlykov.lib.smartadapter.holder.BindableViewHolder

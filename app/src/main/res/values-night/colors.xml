@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="ds_text_headline">#FFFFFF</color>
+
+    <color name="ds_icon_primary">#FFFFFF</color>
+    <color name="ds_icon_secondary">#969FA8</color>
+    <color name="ds_icon_tertiary">#626C77</color>
+    <color name="ds_icon_positive">#74DF8B</color>
+    <color name="ds_icon_negative">#FFA080</color>
+    <color name="ds_icon_primary_active">#E30611</color>
+    <color name="ds_icon_inverted">#000000</color>
+    <color name="ds_icon_tertiary_active">#597F8C99</color>
+
+    <!--sticky decorator-->
+    <color name="sticky_background">#DDFFFFFF</color>
+    <color name="sticky_text">#444444</color>
+
+</resources>

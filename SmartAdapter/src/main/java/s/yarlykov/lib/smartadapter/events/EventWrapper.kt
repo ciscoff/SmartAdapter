@@ -1,4 +1,4 @@
-package s.yarlykov.lib.smartadapter.holder
+package s.yarlykov.lib.smartadapter.events
 
 /**
  * Используется для обертки сообщений от ViewHolder'ов через EventBus.

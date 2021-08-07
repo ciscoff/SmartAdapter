@@ -1,4 +1,4 @@
-package s.yarlykov.lib.smartadapter.ui
+package s.yarlykov.lib.smartadapter.widgets
 
 import android.content.Context
 import android.graphics.Canvas

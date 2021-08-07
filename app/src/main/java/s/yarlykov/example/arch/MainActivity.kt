@@ -1,10 +1,11 @@
-package s.yarlykov.example
+package s.yarlykov.example.arch
 
 import android.content.res.Resources
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import androidx.recyclerview.widget.LinearLayoutManager
 import kotlinx.android.synthetic.main.activity_main.*
+import s.yarlykov.example.R
 import s.yarlykov.lib.smartadapter.adapter.SmartAdapter
 import s.yarlykov.lib.smartadapter.model.SmartList
 

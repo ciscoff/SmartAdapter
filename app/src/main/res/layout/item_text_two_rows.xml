@@ -3,12 +3,12 @@
     android:layout_width="match_parent"
     android:layout_height="?attr/actionBarSize"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:background="@color/colorPinkLight"
+    android:background="@color/color_pink_light"
     android:paddingStart="20dp"
     android:paddingEnd="20dp"
     android:orientation="vertical">
 
-    <s.yarlykov.lib.smartadapter.ui.StubView
+    <s.yarlykov.lib.smartadapter.widgets.StubView
         android:id="@+id/stubView"
         android:layout_width="48dp"
         android:layout_height="48dp"

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="block_padding_bottom">0dp</dimen>
+    <dimen name="block_rounded_size">6dp</dimen>
+    <dimen name="block_rounded_size_4">4dp</dimen>
+
+    <dimen name="d_margin_5dp">5dp</dimen>
+    <dimen name="d_margin_8dp">8dp</dimen>
+    <dimen name="d_margin_9dp">9dp</dimen>
+    <dimen name="d_margin_16dp">16dp</dimen>
+    <dimen name="d_margin_18dp">18dp</dimen>
+    <dimen name="d_margin_20dp">20dp</dimen>
+    <dimen name="d_margin_22dp">22dp</dimen>
+    <dimen name="d_margin_24dp">24dp</dimen>
+    <dimen name="d_margin_30dp">30dp</dimen>
+    <dimen name="d_margin_32dp">32dp</dimen>
+    <dimen name="d_margin_36dp">36dp</dimen>
+    <dimen name="d_margin_40dp">40dp</dimen>
+    <dimen name="d_margin_48dp">48dp</dimen>
+
+    <dimen name="d_padding_1dp">1dp</dimen>
+    <dimen name="d_padding_8dp">8dp</dimen>
+    <dimen name="d_padding_12dp">12dp</dimen>
+    <dimen name="d_padding_16dp">16dp</dimen>
+
+    <dimen name="check_status_indicator">16dp</dimen>
+    <dimen name="check_status_margin">12dp</dimen>
+</resources>
