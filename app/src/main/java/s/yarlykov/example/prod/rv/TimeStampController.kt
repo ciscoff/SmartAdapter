@@ -36,10 +36,13 @@ class TimeStampController(@LayoutRes val layoutRes: Int) :
 
         private val dateTimeView = itemView.findViewById<TextView>(R.id.date_time)
 
+        private var dataHash: Int = StickyHolder.NO_ID
+
         override val id: Int
-            get() = adapterPosition
+            get() = dataHash
 
         override fun bind(data: MockUncMessage.Header) {
+            dataHash = System.identityHashCode(data)
             dateTimeView.text = data.date
         }
     }

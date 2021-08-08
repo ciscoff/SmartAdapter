@@ -7,4 +7,8 @@ package s.yarlykov.decoration.sticky
  */
 interface StickyHolder {
     val id: Int
+
+    companion object {
+        const val NO_ID = -1
+    }
 }

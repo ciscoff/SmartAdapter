@@ -252,6 +252,7 @@ class MessengerActivity : AppCompatActivity() {
         while (itemDecorationCount > 0) {
             removeItemDecorationAt(0)
         }
+        stickyDecorator.reset()
     }
 
     /**

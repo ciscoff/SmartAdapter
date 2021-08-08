@@ -1,6 +1,7 @@
 package s.yarlykov.decoration.sticky
 
 import android.graphics.*
+import android.util.Log
 import androidx.core.view.children
 import androidx.core.view.drawToBitmap
 import androidx.recyclerview.widget.RecyclerView
@@ -19,7 +20,30 @@ import s.yarlykov.decoration.Decorator
  * Кэш Stickies позволяет по id сохранять битмапы элементов HeaderView. Кэш Neighbors позволяет
  * по id элемента HeaderView найти его "предшественника", который располагается выше в layout.
  * Имея эти две структуры можно в любой момент найти битмапу верхнего соседа любого элемента
- * HeaderView. Зачем это нужно:
+ * HeaderView.
+ *
+ * TODO Важно !!!
+ *
+ * Основной проблемой данного декоратора оказалось поддержание актуальных связей между
+ * sticky-элементами, а именно каждый последующий должен всегда знать правильный ID своего
+ * предшественника. Эта проблема частично была решена с помощью структур neighbors/stickies.
+ * Изначально в качестве ID StickyHolder 'а я использовал adapterPosition. Но с таким подходом
+ * быстро обнаружился глюк неправильной отрисовки липучек при удалении элементов списка свайпом.
+ * Структуры neighbors/stickies дополнялись новыми данными, но не удаляли данные устаревшие.
+ * В итоге в качестве ID я решил использовать то, что уникально идентифицирует данные,
+ * отображаемые ViewHolder 'ом, а не ID самого холдера. Для этого подходит значение
+ * System.identityHashCode(data) от данных в BindableViewHolder. Поэтому ViewHolder для липучки
+ * должен во-первых реализовать интерфейс StickyHolder, а во-вторых при биндинге данных
+ * вычислить их System.identityHashCode и присвоить результат в StickyHolder::id. Вычислять ID
+ * при биндинге данных безопасно потому что в этот момент декоратор ешё не приступил к работе.
+ *
+ * См. реализацию в [s.yarlykov.example.prod.rv.TimeStampController.Holder]
+ *
+ * NOTE: Сначала я думал при каждом обновлении модели генерить новую структуру neighbors внешним
+ * кодом и передавать в декоратор. Но это плохо, потому что декоратор теряет автономность.
+ * Он зависит от кого-то. В итоге стал искать решение, которое всю работу оставит декторатору с
+ * минимальной помощью извне. Все что от нас требуется - это уникальный ID для данных липучки.
+ *
  */
 class StickyItemDecorator : Decorator.RecyclerViewDecorator {
     private val neighbors = mutableMapOf<Int, Int?>()
@@ -35,14 +59,15 @@ class StickyItemDecorator : Decorator.RecyclerViewDecorator {
         paintCurrent = if (mode) paintDebug else paintSimple
     }
 
-    private var currentStickyId: Int = Int.MIN_VALUE
+    private var currentStickyId: Int = StickyHolder.NO_ID
     private var prevTopHeaderViewY: Int = 0
 
     @ExperimentalStdlibApi
     override fun draw(canvas: Canvas, recyclerView: RecyclerView, state: RecyclerView.State) {
 
+        // TODO Не помогает !!!
         // Очистить кэш (neighbors/stickies) если модель списка обновлена
-        resetInternalIfDataSetChanged(recyclerView)
+//        resetInternalIfDataSetChanged(recyclerView)
 
         // Найти все ViewHolder 'ы всех HeaderView на экране...
         val stickyViewHolders = recyclerView.children
@@ -69,9 +94,10 @@ class StickyItemDecorator : Decorator.RecyclerViewDecorator {
              * - Это старт активити/фрагмента/родительского_элемента.
              * - RecyclerView только что создан и отрисован первый раз.
              */
-            (currentStickyId == Int.MIN_VALUE) -> {
+            (currentStickyId == StickyHolder.NO_ID) -> {
                 currentStickyId = topHeaderViewId
-                neighbors[topHeaderViewId] = Int.MIN_VALUE
+                // У первой липучки нет верхнего соседа
+                neighbors[currentStickyId] = StickyHolder.NO_ID
             }
             /**
              * TODO Проверяем, что HeaderView вытолкнул Sticky выше верхней границы RecyclerView.
@@ -83,11 +109,14 @@ class StickyItemDecorator : Decorator.RecyclerViewDecorator {
              *    этом случае он должен заменить currentStickyId.
              */
             (topHeaderViewY < 0) -> {
-                if (currentStickyId < topHeaderViewId) {
+                if (currentStickyId != topHeaderViewId) {
                     currentStickyId = topHeaderViewId
                 }
             }
         }
+
+        Log.d("STICKY", "${stickyViewHolders.toList().map { it?.adapterPosition }}")
+        Log.d("STICKY", "neighbors: $neighbors, bitmaps: ${stickies.keys}")
 
         /**
          * На текущий момент ужё есть ясность относительно currentStickyId поэтому можно посчитать
@@ -113,12 +142,17 @@ class StickyItemDecorator : Decorator.RecyclerViewDecorator {
 
         /**
          * TODO Далее проверяем, что HeaderView спустилась сверху и стала полностью видна.
-         * В этой ситуации нужно найти в кэще битмапу верхнего соседа и назначить её на роль sticky.
+         * В этой ситуации нужно найти в кэше битмапу верхнего соседа и назначить её на роль sticky.
          */
         if (topHeaderViewY >= 0 &&
             topHeaderViewY < bitmapHeight / 2
         ) {
-            currentStickyId = neighbors[topHeaderViewId] ?: Int.MIN_VALUE
+            currentStickyId = neighbors[topHeaderViewId] ?: StickyHolder.NO_ID
+        }
+
+        // TODO Мля ! Вот эта строка спасает от глюков при резком свайпе !!!
+        if (topHeaderViewY > bitmapHeight) {
+            currentStickyId = neighbors[topHeaderViewId] ?: StickyHolder.NO_ID
         }
 
         topHeaderHolder.itemView.alpha = if (topHeaderViewY < 0f) 0f else 1f
@@ -175,25 +209,19 @@ class StickyItemDecorator : Decorator.RecyclerViewDecorator {
         }
     }
 
+
     /**
-     * TODO Важно !!!
+     * Очистка кэша (вызывается внешним кодом)
      *
-     * Основной проблемой данного декоратора оказалось поддержание актуальных связей между
-     * sticky-элементами, а именно каждый последующий должен всегда знать правильный ID своего
-     * предшественника. Эта проблема была решена с помощью структур neighbors/stickies. Однако
-     * обнаружился ещё один глюк: если используем список из которого пользователь может удалять
-     * элементы свайпом, то при удалении индексы элементов меняются и данные в neighbors/stickies
-     * становятся неактуальны.
-     *
-     * Сначала я думал генерить структуру neighbors внешним кодом, проходя по модели, и передавать
-     * в декоратор. Но это плохо, потому что декоратор теряет автономность. Он зависит от кого-то.
-     * В итоге я поступил так: метод draw сначала пытается определить, что модель перезагружена.
-     * И если это так, то очищает neighbors/stickies. Потом они заполняются снова актуальными
-     * данными. Модель считается перезагруженной, если верхним child 'ом является является
-     * элемент модели с индексом 0 и его View.top не меньше 0. Пока все работает ОК.
-     *
-     * @param recyclerView
+     * TODO Подумать как использовать только внутренне
      */
+    fun reset() {
+        neighbors.clear()
+        stickies.clear()
+        currentStickyId = StickyHolder.NO_ID
+    }
+
+    // TODO Не помогает !!!
     private fun resetInternalIfDataSetChanged(recyclerView: RecyclerView) {
         recyclerView.getChildAt(0)?.let { topChild ->
             val position = recyclerView.getChildAdapterPosition(topChild)

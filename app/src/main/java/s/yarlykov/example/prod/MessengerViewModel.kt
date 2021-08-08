@@ -14,7 +14,7 @@ import s.yarlykov.example.prod.domain.UserAction
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-class MessengerViewModel: ViewModel() {
+class MessengerViewModel : ViewModel() {
 
     private val modelStateMutable = MutableLiveData<ModelState>()
     val modelState = modelStateMutable as LiveData<ModelState>
@@ -137,7 +137,7 @@ class MessengerViewModel: ViewModel() {
 
         var date = LocalDate.now().format(formatter)
 
-        repeat(25) { i ->
+        repeat(15) { i ->
 
             if (i.rem(3) == 0) {
                 date = now.minusDays(i.toLong()).format(formatter)
