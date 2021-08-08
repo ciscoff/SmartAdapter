@@ -41,6 +41,9 @@ class StickyItemDecorator : Decorator.RecyclerViewDecorator {
     @ExperimentalStdlibApi
     override fun draw(canvas: Canvas, recyclerView: RecyclerView, state: RecyclerView.State) {
 
+        // Очистить кэш (neighbors/stickies) если модель списка обновлена
+        resetInternalIfDataSetChanged(recyclerView)
+
         // Найти все ViewHolder 'ы всех HeaderView на экране...
         val stickyViewHolders = recyclerView.children
             .map { recyclerView.findContainingViewHolder(it) }
@@ -168,6 +171,36 @@ class StickyItemDecorator : Decorator.RecyclerViewDecorator {
         while (iterator.hasNext()) {
             if (iterator.next().key !in remain) {
                 iterator.remove()
+            }
+        }
+    }
+
+    /**
+     * TODO Важно !!!
+     *
+     * Основной проблемой данного декоратора оказалось поддержание актуальных связей между
+     * sticky-элементами, а именно каждый последующий должен всегда знать правильный ID своего
+     * предшественника. Эта проблема была решена с помощью структур neighbors/stickies. Однако
+     * обнаружился ещё один глюк: если используем список из которого пользователь может удалять
+     * элементы свайпом, то при удалении индексы элементов меняются и данные в neighbors/stickies
+     * становятся неактуальны.
+     *
+     * Сначала я думал генерить структуру neighbors внешним кодом, проходя по модели, и передавать
+     * в декоратор. Но это плохо, потому что декоратор теряет автономность. Он зависит от кого-то.
+     * В итоге я поступил так: метод draw сначала пытается определить, что модель перезагружена.
+     * И если это так, то очищает neighbors/stickies. Потом они заполняются снова актуальными
+     * данными. Модель считается перезагруженной, если верхним child 'ом является является
+     * элемент модели с индексом 0 и его View.top не меньше 0. Пока все работает ОК.
+     *
+     * @param recyclerView
+     */
+    private fun resetInternalIfDataSetChanged(recyclerView: RecyclerView) {
+        recyclerView.getChildAt(0)?.let { topChild ->
+            val position = recyclerView.getChildAdapterPosition(topChild)
+
+            if (position == 0 && topChild.top >= 0) {
+                stickies.clear()
+                neighbors.clear()
             }
         }
     }

@@ -137,7 +137,7 @@ class MessengerViewModel: ViewModel() {
 
         var date = LocalDate.now().format(formatter)
 
-        repeat(15) { i ->
+        repeat(25) { i ->
 
             if (i.rem(3) == 0) {
                 date = now.minusDays(i.toLong()).format(formatter)

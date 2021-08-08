@@ -23,6 +23,6 @@
     <dimen name="d_padding_12dp">12dp</dimen>
     <dimen name="d_padding_16dp">16dp</dimen>
 
-    <dimen name="check_status_indicator">16dp</dimen>
+    <dimen name="check_status_indicator">12dp</dimen>
     <dimen name="check_status_margin">12dp</dimen>
 </resources>

@@ -11,9 +11,10 @@
         android:layout_height="wrap_content"
         android:layout_gravity="start|center_vertical"
         android:gravity="center"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
+        android:paddingStart="32dp"
+        android:paddingEnd="32dp"
         android:textColor="@color/sticky_text"
         android:textSize="20sp"
+        android:textStyle="bold"
         tools:text="25 июня" />
 </FrameLayout>
