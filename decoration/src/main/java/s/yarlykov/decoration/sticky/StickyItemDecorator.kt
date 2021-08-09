@@ -44,6 +44,7 @@ import s.yarlykov.decoration.Decorator
  * Он зависит от кого-то. В итоге стал искать решение, которое всю работу оставит декторатору с
  * минимальной помощью извне. Все что от нас требуется - это уникальный ID для данных липучки.
  *
+ * На TODO: Подумать как чистить кэши.
  */
 class StickyItemDecorator : Decorator.RecyclerViewDecorator {
     private val neighbors = mutableMapOf<Int, Int?>()
@@ -65,10 +66,6 @@ class StickyItemDecorator : Decorator.RecyclerViewDecorator {
     @ExperimentalStdlibApi
     override fun draw(canvas: Canvas, recyclerView: RecyclerView, state: RecyclerView.State) {
 
-        // TODO Не помогает !!!
-        // Очистить кэш (neighbors/stickies) если модель списка обновлена
-//        resetInternalIfDataSetChanged(recyclerView)
-
         // Найти все ViewHolder 'ы всех HeaderView на экране...
         val stickyViewHolders = recyclerView.children
             .map { recyclerView.findContainingViewHolder(it) }
@@ -88,9 +85,21 @@ class StickyItemDecorator : Decorator.RecyclerViewDecorator {
         // ... сохранить соседство
         saveNeighbors(stickyViewHolders)
 
+        /**
+         * Важны ЧЕТЫРЕ положения ВЕРХНЕГО StickyHolder 'a
+         * 1. Начальное - данные только загрузились, topHeaderHolder - первый элемент списка и
+         *    он на самом верху.
+         * 2. topHeaderHolder начал выходить выше верхней границы RecyclerView. Это значит, что
+         *    он "вытолкал" какую-то битмапу (свою или чужую)
+         * 3. topHeaderViewY в диапазоне от 0 до bitmap.height. Это значит, что topHeaderView
+         *    толкает/тянет битмапу
+         * 4. topHeaderViewY больше bitmap.height. Это значит что с липучкой ничего не происходит.
+         *    Она просто висит наверху.
+         */
+
         when {
             /**
-             * TODO Проверяем, что находимся в начальном состоянии.
+             * TODO Проверяем положение 1: то что находимся в начальном состоянии.
              * - Это старт активити/фрагмента/родительского_элемента.
              * - RecyclerView только что создан и отрисован первый раз.
              */
@@ -100,8 +109,8 @@ class StickyItemDecorator : Decorator.RecyclerViewDecorator {
                 neighbors[currentStickyId] = StickyHolder.NO_ID
             }
             /**
-             * TODO Проверяем, что HeaderView вытолкнул Sticky выше верхней границы RecyclerView.
-             * TODO То есть HeaderView.Y стал меньше 0, но был больше в предыдущем draw()
+             * TODO Проверяем положение 2: то что HeaderView вытолкнул Sticky выше верхней границы
+             * TODO RecyclerView. HeaderView.Y стал меньше 0, но был больше в предыдущем draw()
              * В этом случае два варианта:
              * 1. Первый HeaderView адаптера поднимается вверх. В этом случае других sticky ещё
              *    не было, currentStickyId == topStickyId и поэтому ничего делать не надо.
@@ -141,7 +150,7 @@ class StickyItemDecorator : Decorator.RecyclerViewDecorator {
             }
 
         /**
-         * TODO Далее проверяем, что HeaderView спустилась сверху и стала полностью видна.
+         * TODO Проверяем положение 3: topHeaderViewY внутри [0 .. bitmap.height].
          * В этой ситуации нужно найти в кэше битмапу верхнего соседа и назначить её на роль sticky.
          */
         if (topHeaderViewY >= 0 &&
@@ -150,7 +159,7 @@ class StickyItemDecorator : Decorator.RecyclerViewDecorator {
             currentStickyId = neighbors[topHeaderViewId] ?: StickyHolder.NO_ID
         }
 
-        // TODO Мля ! Вот эта строка спасает от глюков при резком свайпе !!!
+        // TODO Проверяем положение 4: Мля! Вот эта строка спасает от глюков при резком свайпе !!!
         if (topHeaderViewY > bitmapHeight) {
             currentStickyId = neighbors[topHeaderViewId] ?: StickyHolder.NO_ID
         }
@@ -205,30 +214,6 @@ class StickyItemDecorator : Decorator.RecyclerViewDecorator {
         while (iterator.hasNext()) {
             if (iterator.next().key !in remain) {
                 iterator.remove()
-            }
-        }
-    }
-
-
-    /**
-     * Очистка кэша (вызывается внешним кодом)
-     *
-     * TODO Подумать как использовать только внутренне
-     */
-    fun reset() {
-        neighbors.clear()
-        stickies.clear()
-        currentStickyId = StickyHolder.NO_ID
-    }
-
-    // TODO Не помогает !!!
-    private fun resetInternalIfDataSetChanged(recyclerView: RecyclerView) {
-        recyclerView.getChildAt(0)?.let { topChild ->
-            val position = recyclerView.getChildAdapterPosition(topChild)
-
-            if (position == 0 && topChild.top >= 0) {
-                stickies.clear()
-                neighbors.clear()
             }
         }
     }
