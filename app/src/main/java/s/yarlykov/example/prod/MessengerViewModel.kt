@@ -8,7 +8,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import s.yarlykov.example.extentions.logIt
-import s.yarlykov.example.prod.domain.MockUncMessage
+import s.yarlykov.example.prod.domain.MockMessage
 import s.yarlykov.example.prod.domain.ModelState
 import s.yarlykov.example.prod.domain.UserAction
 import java.time.LocalDate
@@ -20,7 +20,7 @@ class MessengerViewModel : ViewModel() {
     val modelState = modelStateMutable as LiveData<ModelState>
 
     // Модель
-    private val model = mutableListOf<MockUncMessage>()
+    private val model = mutableListOf<MockMessage>()
 
     override fun onCleared() {
         logIt(this.toString().substringAfterLast("@"))
@@ -70,7 +70,7 @@ class MessengerViewModel : ViewModel() {
         when (action) {
             UserAction.MarkAllAsRead -> {
                 model.forEach {
-                    if (it is MockUncMessage.Data) {
+                    if (it is MockMessage.Data) {
                         it.isUnread = false
                     }
                 }
@@ -82,14 +82,14 @@ class MessengerViewModel : ViewModel() {
             }
             is UserAction.MarkAsRead -> {
                 val item = model[action.position]
-                if (item is MockUncMessage.Data) {
+                if (item is MockMessage.Data) {
                     item.isUnread = false
                     modelStateMutable.value = ModelState.Success(model)
                 }
             }
             is UserAction.Delete -> {
 
-                val date = (model[action.position] as? MockUncMessage.Data)?.date ?: return
+                val date = (model[action.position] as? MockMessage.Data)?.date ?: return
                 model.removeAt(action.position)
 
                 // Если удалены все сообщений на определенную дату, то удалить и заголовок
@@ -108,11 +108,11 @@ class MessengerViewModel : ViewModel() {
     }
 
     private fun deleteHeaderIfNoMoreMessages(date: String) {
-        val remain = model.filterIsInstance<MockUncMessage.Data>().count { it.date == date }
+        val remain = model.filterIsInstance<MockMessage.Data>().count { it.date == date }
         if (remain == 0) {
 
             val index = model.indexOfFirst {
-                (it as? MockUncMessage.Header)?.date == date
+                (it as? MockMessage.Header)?.date == date
             }
 
             if (index != -1) {
@@ -137,15 +137,15 @@ class MessengerViewModel : ViewModel() {
 
         var date = LocalDate.now().format(formatter)
 
-        repeat(15) { i ->
+        repeat(30) { i ->
 
             if (i.rem(3) == 0) {
                 date = now.minusDays(i.toLong()).format(formatter)
-                model.add(MockUncMessage.Header(date))
+                model.add(MockMessage.Header(date))
             }
 
             // Первые UNREAD_COUNT пометить как "непрочитанные"
-            model.add(MockUncMessage.Data(i < UNREAD_COUNT, date))
+            model.add(MockMessage.Data(i < UNREAD_COUNT, date))
         }
 
         modelStateMutable.value = ModelState.Success(model)
