@@ -73,7 +73,7 @@ class StickyItemDecorator : Decorator.RecyclerViewDecorator {
 
         // ... запомнить верхний,...
         val topHeaderHolder = stickyViewHolders.firstOrNull() ?: return
-        val topHeaderViewId = (topHeaderHolder as StickyHolder).id
+        val topHeaderId = (topHeaderHolder as StickyHolder).id
         val topHeaderViewY = topHeaderHolder.itemView.y
 
         // ... сделать их view видимыми, и ...
@@ -104,7 +104,7 @@ class StickyItemDecorator : Decorator.RecyclerViewDecorator {
              * - RecyclerView только что создан и отрисован первый раз.
              */
             (currentStickyId == StickyHolder.NO_ID) -> {
-                currentStickyId = topHeaderViewId
+                currentStickyId = topHeaderId
                 // У первой липучки нет верхнего соседа
                 neighbors[currentStickyId] = StickyHolder.NO_ID
             }
@@ -118,14 +118,14 @@ class StickyItemDecorator : Decorator.RecyclerViewDecorator {
              *    этом случае он должен заменить currentStickyId.
              */
             (topHeaderViewY < 0) -> {
-                if (currentStickyId != topHeaderViewId) {
-                    currentStickyId = topHeaderViewId
+                if (currentStickyId != topHeaderId) {
+                    currentStickyId = topHeaderId
                 }
             }
         }
 
-        Log.d("STICKY", "${stickyViewHolders.toList().map { it?.adapterPosition }}")
-        Log.d("STICKY", "neighbors: $neighbors, bitmaps: ${stickies.keys}")
+//        Log.d("STICKY", "${stickyViewHolders.toList().map { it?.adapterPosition }}")
+//        Log.d("STICKY", "neighbors: $neighbors, bitmaps: ${stickies.keys}")
 
         /**
          * На текущий момент ужё есть ясность относительно currentStickyId поэтому можно посчитать
@@ -153,15 +153,36 @@ class StickyItemDecorator : Decorator.RecyclerViewDecorator {
          * TODO Проверяем положение 3: topHeaderViewY внутри [0 .. bitmap.height].
          * В этой ситуации нужно найти в кэше битмапу верхнего соседа и назначить её на роль sticky.
          */
-        if (topHeaderViewY >= 0 &&
-            topHeaderViewY < bitmapHeight / 2
+        if (topHeaderViewY > 0 &&
+            topHeaderViewY < bitmapHeight
         ) {
-            currentStickyId = neighbors[topHeaderViewId] ?: StickyHolder.NO_ID
+            currentStickyId = neighbors[topHeaderId] ?: StickyHolder.NO_ID
         }
 
         // TODO Проверяем положение 4: Мля! Вот эта строка спасает от глюков при резком свайпе !!!
         if (topHeaderViewY > bitmapHeight) {
-            currentStickyId = neighbors[topHeaderViewId] ?: StickyHolder.NO_ID
+
+            /**
+             * TODO Очень важный момент ! Проверяем, что верхний сосед сменился !
+             * TODO Это может произойти в следующей ситуации:
+             * Допустип, что в качестве липучки висит битмапа '10 августа'. Чуть ниже Header
+             * '07 августа' с парой элементов данных, и затем ещё один Header '04 августа'. Хидер
+             * от 4 августа считает своим верхним соседом хидера от 7 августа. Теперь мы удаляем
+             * оба элемента данных у 7 августа. И вуаля ! Липучка '10 августа' неожиданно меняется
+             * на '07 августа' хотя должна остаться прежняя, а такого элемента как '7 августа'
+             * вообще больше не существует !!! Дело в том, что хидер '04 августа' оказался верхним.
+             * В структуре neighbors его соседом записан id '7 августа', однако такого соседа
+             * больше нет, но есть новый - '10 августа', чья липучка сейчас записана в переменной
+             * currentStickyId, сохранившей значение от прошлого draw(). И мы можем заменить
+             * соседа хидера '04 августа' с 07 на 10 августа. Что мы и делаем !!!
+             *
+             * TODO WTF снова трабла при резком свайпе !
+             */
+//            if (currentStickyId != neighbors[topHeaderId]) {
+//                neighbors[topHeaderId] = currentStickyId
+//            }
+
+            currentStickyId = neighbors[topHeaderId] ?: StickyHolder.NO_ID
         }
 
         topHeaderHolder.itemView.alpha = if (topHeaderViewY < 0f) 0f else 1f
@@ -169,6 +190,8 @@ class StickyItemDecorator : Decorator.RecyclerViewDecorator {
         stickies[currentStickyId]?.let {
             canvas.drawBitmap(it, 0f, bitmapTopOffset, paintCurrent)
         }
+
+        Log.d("STICKY", "currentStickyId=$currentStickyId")
 
         // Очистить стек если верхний Header (adapterPosition 0) полностью на экране
         if (topHeaderHolder.adapterPosition == 0
