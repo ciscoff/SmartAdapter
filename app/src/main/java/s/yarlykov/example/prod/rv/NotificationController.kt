@@ -8,9 +8,10 @@ import android.widget.TextView
 import androidx.annotation.DrawableRes
 import androidx.annotation.LayoutRes
 import androidx.core.content.ContextCompat
+import s.yarlykov.decoration.sticky.StickyHolder
 import s.yarlykov.example.R
 import s.yarlykov.example.prod.domain.AdapterEvent
-import s.yarlykov.example.prod.domain.MockUncMessage
+import s.yarlykov.example.prod.domain.MockMessage
 import s.yarlykov.lib.smartadapter.adapter.Collector
 import s.yarlykov.lib.smartadapter.controller.BindableItemController
 import s.yarlykov.lib.smartadapter.events.EventWrapper
@@ -18,19 +19,19 @@ import s.yarlykov.lib.smartadapter.holder.BindableViewHolder
 import s.yarlykov.lib.smartadapter.model.item.BindableItem
 
 class NotificationController(@LayoutRes val layoutRes: Int) :
-    BindableItemController<MockUncMessage.Data, NotificationController.Holder>() {
+    BindableItemController<MockMessage.Data, NotificationController.Holder>() {
 
     override fun createViewHolder(parent: ViewGroup, eventCollector: Collector?): Holder {
         return Holder(parent, layoutRes, eventCollector)
     }
 
-    override fun bind(holder: Holder, item: BindableItem<MockUncMessage.Data, Holder>) {
+    override fun bind(holder: Holder, item: BindableItem<MockMessage.Data, Holder>) {
         holder.bind(item.data)
     }
 
     override fun viewType(): Int = layoutRes
 
-    override fun getItemId(data: MockUncMessage.Data): String {
+    override fun getItemId(data: MockMessage.Data): String {
         return data.uid
     }
 
@@ -38,7 +39,7 @@ class NotificationController(@LayoutRes val layoutRes: Int) :
      * ViewHolder
      */
     inner class Holder(parent: ViewGroup, layoutRes: Int, eventCollector: Collector?) :
-        BindableViewHolder<MockUncMessage.Data>(parent, layoutRes, eventCollector) {
+        BindableViewHolder<MockMessage.Data>(parent, layoutRes, eventCollector), StickyHolder.Data {
 
         private val statusView: View
         private val doneButton: TextView
@@ -47,6 +48,11 @@ class NotificationController(@LayoutRes val layoutRes: Int) :
 
         var isEditable: Boolean = false
             private set
+
+        private var groupIdHash: Int = StickyHolder.NO_ID
+
+        override val groupId: Int
+            get() = groupIdHash
 
         init {
             LayoutInflater
@@ -79,7 +85,9 @@ class NotificationController(@LayoutRes val layoutRes: Int) :
             }
         }
 
-        override fun bind(data: MockUncMessage.Data) {
+        override fun bind(data: MockMessage.Data) {
+            groupIdHash = data.groupId.hashCode()
+
             doneButton.isEnabled = false
             deleteButton.isEnabled = false
             upperLayer.translationX = 0f
@@ -92,7 +100,7 @@ class NotificationController(@LayoutRes val layoutRes: Int) :
          * Отобразить/скрыть статус сообщения (прочитано/непрочитано).
          */
         private fun drawMessageStatus(
-            data: MockUncMessage.Data,
+            data: MockMessage.Data,
             @DrawableRes drawableId: Int = R.drawable.circle_red
         ) {
             val status = when (data.isUnread) {

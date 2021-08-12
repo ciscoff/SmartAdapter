@@ -8,11 +8,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import s.yarlykov.example.extentions.logIt
-import s.yarlykov.example.prod.domain.MockUncMessage
+import s.yarlykov.example.prod.data.ModelGenerator
+import s.yarlykov.example.prod.domain.MockMessage
 import s.yarlykov.example.prod.domain.ModelState
 import s.yarlykov.example.prod.domain.UserAction
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 
 class MessengerViewModel : ViewModel() {
 
@@ -20,7 +20,7 @@ class MessengerViewModel : ViewModel() {
     val modelState = modelStateMutable as LiveData<ModelState>
 
     // Модель
-    private val model = mutableListOf<MockUncMessage>()
+    private val model = mutableListOf<MockMessage>()
 
     override fun onCleared() {
         logIt(this.toString().substringAfterLast("@"))
@@ -70,7 +70,7 @@ class MessengerViewModel : ViewModel() {
         when (action) {
             UserAction.MarkAllAsRead -> {
                 model.forEach {
-                    if (it is MockUncMessage.Data) {
+                    if (it is MockMessage.Data) {
                         it.isUnread = false
                     }
                 }
@@ -82,19 +82,17 @@ class MessengerViewModel : ViewModel() {
             }
             is UserAction.MarkAsRead -> {
                 val item = model[action.position]
-                if (item is MockUncMessage.Data) {
+                if (item is MockMessage.Data) {
                     item.isUnread = false
                     modelStateMutable.value = ModelState.Success(model)
                 }
             }
             is UserAction.Delete -> {
-
-                val date = (model[action.position] as? MockUncMessage.Data)?.date ?: return
+                val groupId = (model[action.position] as? MockMessage.Data)?.groupId ?: return
                 model.removeAt(action.position)
 
-                // Если удалены все сообщений на определенную дату, то удалить и заголовок
-                // с этой датой.
-                deleteHeaderIfNoMoreMessages(date)
+                // Если удалены все сообщения из группы, то удалить и заголовок этой группы.
+                deleteHeaderIfNoMoreMessages(groupId)
 
                 if (model.isNotEmpty()) {
                     modelStateMutable.value = ModelState.Success(model)
@@ -107,12 +105,12 @@ class MessengerViewModel : ViewModel() {
         }
     }
 
-    private fun deleteHeaderIfNoMoreMessages(date: String) {
-        val remain = model.filterIsInstance<MockUncMessage.Data>().count { it.date == date }
+    private fun deleteHeaderIfNoMoreMessages(groupId: String) {
+        val remain = model.filterIsInstance<MockMessage.Data>().count { it.groupId == groupId }
         if (remain == 0) {
 
             val index = model.indexOfFirst {
-                (it as? MockUncMessage.Header)?.date == date
+                (it as? MockMessage.Header)?.groupId == groupId
             }
 
             if (index != -1) {
@@ -129,31 +127,53 @@ class MessengerViewModel : ViewModel() {
     }
 
     private fun loadMockData() {
+        val newModel = ModelGenerator.createModel(30, LocalDate.now())
 
-        val formatter = DateTimeFormatter.ofPattern(DATE_PATTERN)
-        val now = LocalDate.now()
-
-        model.clear()
-
-        var date = LocalDate.now().format(formatter)
-
-        repeat(30) { i ->
-
-            if (i.rem(3) == 0) {
-                date = now.minusDays(i.toLong()).format(formatter)
-                model.add(MockUncMessage.Header(date))
-            }
-
-            // Первые UNREAD_COUNT пометить как "непрочитанные"
-            model.add(MockUncMessage.Data(i < UNREAD_COUNT, date))
+        model.apply {
+            clear()
+            addAll(groupByDate(newModel))
         }
-
         modelStateMutable.value = ModelState.Success(model)
     }
 
+    /**
+     * Метод группирует входные сообщения по датам, вставляет дополнительные элементы для заголовков
+     * и сортрует релультирующий список по убыванию даты.
+     */
+    private fun groupByDate(messages: List<MockMessage>): List<MockMessage> {
+        val result = mutableListOf<MockMessage>()
+
+        messages
+            .asSequence()
+            .filterIsInstance<MockMessage.Data>()
+            // Получить Map<Дата, Список_сообщений_на_эту_дату>
+            .fold(mutableMapOf<String, MutableList<MockMessage.Data>>()) { acc, message ->
+                acc.apply {
+                    val list = this[message.groupId] ?: mutableListOf()
+                    list.add(message)
+                    this[message.groupId] = list
+                }
+            }
+            // Сортировка по убыванию даты
+            .toSortedMap { sz1, sz2 ->
+                when {
+                    sz2 > sz1 -> 1
+                    sz2 == sz1 -> 0
+                    else -> -1
+                }
+            }
+            // Формирование окончательного списка с добавлением заголовков
+            .entries.forEach {
+                val (k, v) = it
+                result.add(MockMessage.Header(k))
+                result.addAll(v)
+            }
+
+        return result
+    }
+
+
     companion object {
         private const val LOAD_DELAY = 2000L
-        private const val DATE_PATTERN = "dd MMMM"
-        private const val UNREAD_COUNT = 10
     }
 }

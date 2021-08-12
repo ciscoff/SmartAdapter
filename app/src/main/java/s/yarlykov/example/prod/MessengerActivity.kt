@@ -211,7 +211,7 @@ class MessengerActivity : AppCompatActivity() {
     /**
      * Показ списка с данными
      */
-    private fun RecyclerView.showData(model: List<MockUncMessage>) {
+    private fun RecyclerView.showData(model: List<MockMessage>) {
 
         (layoutManager as? NotificationsLayoutManager)?.isScrollable = true
         clearDecorations()
@@ -234,10 +234,10 @@ class MessengerActivity : AppCompatActivity() {
             model.forEach { item ->
 
                 when (item) {
-                    is MockUncMessage.Header -> {
+                    is MockMessage.Header -> {
                         addItem(item, timeStampController)
                     }
-                    is MockUncMessage.Data -> {
+                    is MockMessage.Data -> {
                         addItem(item, notificationController)
                     }
                 }
@@ -268,11 +268,11 @@ class MessengerActivity : AppCompatActivity() {
     /**
      * Паказать панель действий
      */
-    private fun ViewGroup.show(model: List<MockUncMessage>) {
+    private fun ViewGroup.show(model: List<MockMessage>) {
         this.visibility = View.VISIBLE
 
         // Количество непрочитанных
-        val unread = model.filterIsInstance<MockUncMessage.Data>().count { it.isUnread }
+        val unread = model.filterIsInstance<MockMessage.Data>().count { it.isUnread }
 
         val controlBarState =
             if (unread > 0) {
