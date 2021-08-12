@@ -155,9 +155,7 @@ class StickyItemDecorator : Decorator.RecyclerViewDecorator {
          * TODO Проверяем положение 3: topHeaderViewY внутри [0 .. bitmap.height].
          * В этой ситуации нужно найти в кэше битмапу верхнего соседа и назначить её на роль sticky.
          */
-        if (topHeaderViewY > 0 &&
-            topHeaderViewY < bitmapHeight
-        ) {
+        if (topHeaderViewY >= 0 && topHeaderViewY < bitmapHeight / 2) {
             currentStickyId = neighbors[topHeaderId] ?: StickyHolder.NO_ID
         }
 
