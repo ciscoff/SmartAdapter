@@ -15,7 +15,8 @@ sealed class MockMessage {
     val uid: String = UUID.randomUUID().toString()
 
     /**
-     * Идентификатор группы: элементы группируются по дате (это для функционала Sticky)
+     * Идентификатор группы для функционала Sticky: элементы группируются
+     * по какому-то признаку, например по дате.
      */
     lateinit var groupId: String
 
@@ -40,8 +41,8 @@ sealed class MockMessage {
     }
 
     data class Data(
-        var isUnread: Boolean,
-        val date: String
+        val date: String,
+        var isUnread: Boolean
     ) : MockMessage() {
 
         val dateTime: ZonedDateTime?
