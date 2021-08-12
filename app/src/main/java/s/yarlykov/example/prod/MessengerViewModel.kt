@@ -88,13 +88,11 @@ class MessengerViewModel : ViewModel() {
                 }
             }
             is UserAction.Delete -> {
-
-                val date = (model[action.position] as? MockMessage.Data)?.date ?: return
+                val groupId = (model[action.position] as? MockMessage.Data)?.groupId ?: return
                 model.removeAt(action.position)
 
-                // Если удалены все сообщений на определенную дату, то удалить и заголовок
-                // с этой датой.
-                deleteHeaderIfNoMoreMessages(date)
+                // Если удалены все сообщения из группы, то удалить и заголовок этой группы.
+                deleteHeaderIfNoMoreMessages(groupId)
 
                 if (model.isNotEmpty()) {
                     modelStateMutable.value = ModelState.Success(model)
@@ -107,12 +105,12 @@ class MessengerViewModel : ViewModel() {
         }
     }
 
-    private fun deleteHeaderIfNoMoreMessages(date: String) {
-        val remain = model.filterIsInstance<MockMessage.Data>().count { it.date == date }
+    private fun deleteHeaderIfNoMoreMessages(groupId: String) {
+        val remain = model.filterIsInstance<MockMessage.Data>().count { it.groupId == groupId }
         if (remain == 0) {
 
             val index = model.indexOfFirst {
-                (it as? MockMessage.Header)?.date == date
+                (it as? MockMessage.Header)?.groupId == groupId
             }
 
             if (index != -1) {
@@ -129,7 +127,7 @@ class MessengerViewModel : ViewModel() {
     }
 
     private fun loadMockData() {
-        val newModel = ModelGenerator.createModel(15, LocalDate.now())
+        val newModel = ModelGenerator.createModel(30, LocalDate.now())
 
         model.apply {
             clear()
