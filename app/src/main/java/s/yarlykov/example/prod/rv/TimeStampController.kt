@@ -32,7 +32,7 @@ class TimeStampController(@LayoutRes val layoutRes: Int) :
      * ViewHolder
      */
     class Holder(parent: ViewGroup, @LayoutRes layoutRes: Int) :
-        BindableViewHolder<MockMessage.Header>(parent, layoutRes), StickyHolder {
+        BindableViewHolder<MockMessage.Header>(parent, layoutRes), StickyHolder.Header {
 
         private val dateTimeView = itemView.findViewById<TextView>(R.id.date_time)
 

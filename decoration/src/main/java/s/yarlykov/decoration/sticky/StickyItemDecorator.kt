@@ -66,12 +66,14 @@ class StickyItemDecorator : Decorator.RecyclerViewDecorator {
     @ExperimentalStdlibApi
     override fun draw(canvas: Canvas, recyclerView: RecyclerView, state: RecyclerView.State) {
 
+        val topVisibleHolder = findTopHolder(recyclerView)
+
         // Найти все ViewHolder 'ы всех HeaderView на экране...
         val stickyViewHolders = recyclerView.children
             .map { recyclerView.findContainingViewHolder(it) }
-            .filter { it is StickyHolder }
+            .filter { it is StickyHolder.Header }
 
-        // ... запомнить верхний,...
+        // ... запомнить верхний Header,...
         val topHeaderHolder = stickyViewHolders.firstOrNull() ?: return
         val topHeaderId = (topHeaderHolder as StickyHolder).groupId
         val topHeaderViewY = topHeaderHolder.itemView.y
@@ -239,5 +241,14 @@ class StickyItemDecorator : Decorator.RecyclerViewDecorator {
                 iterator.remove()
             }
         }
+    }
+
+    /**
+     * TODO Нужно продумать вариант если используется элемент, который вообще не StickyHolder
+     */
+    private fun findTopHolder(recyclerView: RecyclerView): RecyclerView.ViewHolder? {
+        return recyclerView.children.firstOrNull { view ->
+            view.top <= recyclerView.paddingTop && view.bottom > recyclerView.paddingTop
+        }?.let(recyclerView::findContainingViewHolder)
     }
 }

@@ -20,6 +20,16 @@ package s.yarlykov.decoration.sticky
 interface StickyHolder {
     val groupId: Int
 
+    /**
+     * Признак элемента заголовка
+     */
+    interface Header : StickyHolder
+
+    /**
+     * ПРизнак элемента данных
+     */
+    interface Data : StickyHolder
+
     companion object {
         const val NO_ID = -1
     }

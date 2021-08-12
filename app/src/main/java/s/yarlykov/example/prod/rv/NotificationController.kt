@@ -39,7 +39,7 @@ class NotificationController(@LayoutRes val layoutRes: Int) :
      * ViewHolder
      */
     inner class Holder(parent: ViewGroup, layoutRes: Int, eventCollector: Collector?) :
-        BindableViewHolder<MockMessage.Data>(parent, layoutRes, eventCollector), StickyHolder {
+        BindableViewHolder<MockMessage.Data>(parent, layoutRes, eventCollector), StickyHolder.Data {
 
         private val statusView: View
         private val doneButton: TextView
