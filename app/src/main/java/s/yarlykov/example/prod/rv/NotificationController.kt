@@ -101,7 +101,7 @@ class NotificationController(@LayoutRes val layoutRes: Int) :
          */
         private fun drawMessageStatus(
             data: MockMessage.Data,
-            @DrawableRes drawableId: Int = R.drawable.circle_red
+            @DrawableRes drawableId: Int = R.drawable.circle_purple
         ) {
             val status = when (data.isUnread) {
                 true -> {

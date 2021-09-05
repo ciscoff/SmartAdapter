@@ -70,8 +70,18 @@ class StickyItemDecorator : Decorator.RecyclerViewDecorator {
         // ... сохранить битмапы, и...
         saveStickies(headerViewHolders)
 
-        // ... запомнить текущий верхний Header.
-        val topHeaderHolder = headerViewHolders.firstOrNull() ?: return
+        // ... запомнить текущий верхний Header (если такой есть на экране).
+        val topHeaderHolder = headerViewHolders.firstOrNull() ?: run {
+
+            /**
+             * Может быть ситуация когда есть большой список из элементов только одной
+             * группы. То есть имеем единственный Header. И когда при прокрутке пальцем вверх
+             * этот Header уходит за экран, то нам нужно просто отрисовать его битмапу. Поэтому
+             * вызываем отрисовку и на выход из draw()
+             */
+            drawSticky(canvas, 0f)
+            return
+        }
         val topHeaderViewY = topHeaderHolder.itemView.y
 
         val bitmapHeight = stickies[currentStickyId]?.height ?: 0
@@ -94,9 +104,7 @@ class StickyItemDecorator : Decorator.RecyclerViewDecorator {
 
         topHeaderHolder.itemView.alpha = if (topHeaderViewY < 0f) 0f else 1f
 
-        stickies[currentStickyId]?.let {
-            canvas.drawBitmap(it, 0f, bitmapTopOffset, paintCurrent)
-        }
+        drawSticky(canvas, bitmapTopOffset)
 
         // Очистить стек если верхний Header (adapterPosition 0) полностью на экране
         if (topHeaderHolder.adapterPosition == 0
@@ -107,6 +115,15 @@ class StickyItemDecorator : Decorator.RecyclerViewDecorator {
         }
 
         prevTopHeaderViewY = topHeaderViewY.toInt()
+    }
+
+    /**
+     * Отрисовка битмапы.
+     */
+    private fun drawSticky(canvas: Canvas, bitmapTopOffset: Float) {
+        stickies[currentStickyId]?.let {
+            canvas.drawBitmap(it, 0f, bitmapTopOffset, paintCurrent)
+        }
     }
 
     /**

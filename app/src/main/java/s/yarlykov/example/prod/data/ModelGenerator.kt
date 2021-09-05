@@ -8,7 +8,7 @@ import java.time.format.DateTimeFormatter
 import kotlin.random.Random
 
 object ModelGenerator {
-    private const val MESSAGES_PER_DAY = 3
+    private const val MESSAGES_PER_DAY = 4
     private const val dateFormat = "dd.MM.yyyy"
     private const val dateTimeFormat = "yyyy-MM-dd'T'HH:mm:ssZ"
 

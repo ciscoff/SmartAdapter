@@ -127,7 +127,7 @@ class MessengerViewModel : ViewModel() {
     }
 
     private fun loadMockData() {
-        val newModel = ModelGenerator.createModel(30, LocalDate.now())
+        val newModel = ModelGenerator.createModel(MODEL_SIZE, LocalDate.now())
 
         model.apply {
             clear()
@@ -175,5 +175,6 @@ class MessengerViewModel : ViewModel() {
 
     companion object {
         private const val LOAD_DELAY = 2000L
+        private const val MODEL_SIZE = 30
     }
 }
