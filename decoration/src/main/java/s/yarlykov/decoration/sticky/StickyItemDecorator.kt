@@ -13,14 +13,8 @@ import s.yarlykov.decoration.Decorator
  * - DataView: View которые отображают данные модели.
  * - Sticky: Bitmap - битмапа элемента Header.
  *
- * Используются два "кэша":
- * 1. Neighbors: Map<Int, Int>
- * 2. Stickies: Map<Int, Bitmap>
- *
- * Кэш Stickies позволяет по id сохранять битмапы элементов HeaderView. Кэш Neighbors позволяет
- * по id элемента HeaderView найти его "предшественника", который располагается выше в layout.
- * Имея эти две структуры можно в любой момент найти битмапу верхнего соседа любого элемента
- * HeaderView.
+ * Используется "кэш" Stickies: Map<Int, Bitmap>, который позволяет по id сохранять битмапы
+ * элементов HeaderView.
  */
 class StickyItemDecorator : Decorator.RecyclerViewDecorator {
     private val stickies = mutableMapOf<Int, Bitmap>()

@@ -28,7 +28,7 @@ import s.yarlykov.lib.smartadapter.model.item.BaseItem
  * - Создание холдера: контроллер инфлейтит view с помощью layoutId, создает и возвращает холдер.
  * - Binding: адаптер передает контроллеру созданный ранее холдер и ссылку на Item.
  *
- * Адаптер предоставляет три спооба получения событий из элементов списка:
+ * Адаптер предоставляет три способа получения событий из элементов списка:
  * - Callback
  * - SharedFlow
  * - Observer Rx
@@ -163,11 +163,11 @@ class SmartAdapter(
      * См. [ItemInfo]
      */
     private fun autoNotify() {
-        val newItemInfo = extractItemsInfo()
+        val newItemsInfo: ArrayList<ItemInfo> = extractItemsInfo()
         val diffResult =
-            DiffUtil.calculateDiff(AutoNotifyDiffCallback(lastItemsInfo, newItemInfo), false)
+            DiffUtil.calculateDiff(AutoNotifyDiffCallback(lastItemsInfo, newItemsInfo), false)
         diffResult.dispatchUpdatesTo(this)
-        lastItemsInfo = newItemInfo
+        lastItemsInfo = newItemsInfo
     }
 
     @Suppress("UNCHECKED_CAST")
