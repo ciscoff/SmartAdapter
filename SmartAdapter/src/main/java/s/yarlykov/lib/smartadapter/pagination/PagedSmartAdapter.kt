@@ -23,14 +23,23 @@ import s.yarlykov.lib.smartadapter.events.EventWrapper
 //  }
 
 /**
- * Нужно добавить RecyclerView.LayoutManager, который следит за приближением к хвосту списка
+ * Используется RecyclerView.OnScrollListener, который следит за приближением к хвосту списка
  * при прокрутке. Если осталось непросмотрено N элементов, то выдается сигнал TakeMore. Сообщение
- * TakeMore уходит во внешний мир через коллекторы в обертке EventWrapper<TakeMore>. Внешний
+ * TakeMore уходит во внешний мир в обертке EventWrapper<TakeMore> через коллекторы. Внешний
  * код реагирует и подкачивает следующую порцию данных.
  *
- * Вариант реализации TakeMore, где lastIndex - длина текущей модели.
+ * Вариант реализации TakeMore, где lastIndex - длина текущей модели:
+ *      data class TakeMore(val lastIndex: Int)
+ */
+
+/**
+ * TODO 1:
+ * Возможность начальной загрузки с произвольного индекса, а не только в 0. Это может пригодиться,
+ * если приложение было убито и восстановлено системой. Тогда придется сделать пагинацию "вверх",
+ * т.е. в сторону индекса 0. Также придется хранить в onSaveInstanceState последнее значение
+ * "верхнего" индекса. ViewModel как хранилка не поможет.
  *
- * data class TakeMore(val lastIndex: Int)
+ * @property prefetchDistance - размер страницы
  */
 class PagedSmartAdapter(private val prefetchDistance: Int) : SmartAdapter() {
 
@@ -53,8 +62,8 @@ class PagedSmartAdapter(private val prefetchDistance: Int) : SmartAdapter() {
     /**
      * TODO Пока работаем только с LinearLayoutManager.
      *
-     * Также надо добавить поддержку GridLayoutManager. Там придется высчитывать
-     * с учетом количества элементов в строке.
+     * Также надо добавить поддержку GridLayoutManager. Там придется высчитывать с учетом
+     * количества элементов в строке.
      */
     private fun bindPaginationListener(recyclerView: RecyclerView) {
         val layoutManager = (recyclerView.layoutManager as? LinearLayoutManager)
@@ -68,10 +77,10 @@ class PagedSmartAdapter(private val prefetchDistance: Int) : SmartAdapter() {
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                 super.onScrolled(recyclerView, dx, dy)
 
-                val lastModelIndex = if (itemCount > 0) itemCount - 1 else 0
+                val lastModePosition = if (itemCount > 0) itemCount - 1 else 0
                 val lastVisiblePosition = layoutManager.findLastVisibleItemPosition()
 
-                if (lastModelIndex - lastVisiblePosition < prefetchDistance) {
+                if (lastModePosition - lastVisiblePosition < prefetchDistance) {
                     val event = EventWrapper(TakeMore(lastVisiblePosition))
                     collector.collectorFlow.tryEmit(event)
                     collector.collectorRx.onNext(event)
