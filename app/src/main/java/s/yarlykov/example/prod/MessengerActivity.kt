@@ -161,12 +161,8 @@ class MessengerActivity : AppCompatActivity() {
      */
     private fun RecyclerView.setup() {
         itemAnimator = null
-
-        // todo обратить внимание, что адаптер назначаем после LayoutManager'а иначе
-        // todo будет крэш в PagedSmartAdapter.
         layoutManager = NotificationsLayoutManager(context)
         adapter = smartAdapter
-
         val touchHelper = NotificationTouchHelper(context)
         addOnItemTouchListener(touchHelper)
         addOnScrollListener(touchHelper)
