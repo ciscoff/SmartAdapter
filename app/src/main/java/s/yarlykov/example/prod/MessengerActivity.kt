@@ -24,9 +24,10 @@ import s.yarlykov.example.extentions.expandTouchArea
 import s.yarlykov.example.extentions.px
 import s.yarlykov.example.prod.domain.*
 import s.yarlykov.example.prod.rv.*
-import s.yarlykov.lib.smartadapter.adapter.SmartAdapter
 import s.yarlykov.lib.smartadapter.events.EventWrapper
 import s.yarlykov.lib.smartadapter.model.SmartList
+import s.yarlykov.lib.smartadapter.pagination.PagedSmartAdapter
+import s.yarlykov.lib.smartadapter.pagination.TakeMore
 
 class MessengerActivity : AppCompatActivity() {
 
@@ -38,7 +39,7 @@ class MessengerActivity : AppCompatActivity() {
      * Один и тот же адаптер используется на протяжении всего жизненного цикла NotificationsView.
      * При этом он подключается к заново пересоздаваемым RecyclerView.
      */
-    private val smartAdapter = SmartAdapter()
+    private val smartAdapter = PagedSmartAdapter(PAGING_PREFETCH_DISTANCE)
 
     /**
      * Контроллеры для различных элементов списка
@@ -97,7 +98,7 @@ class MessengerActivity : AppCompatActivity() {
             recyclerViewUnc.setup()
         }
 
-        viewModel = ViewModelProvider(this).get(MessengerViewModel::class.java)
+        viewModel = ViewModelProvider(this)[MessengerViewModel::class.java]
 
         viewModel.apply {
             onStart()
@@ -108,6 +109,11 @@ class MessengerActivity : AppCompatActivity() {
             }
 
             modelState.observe(this@MessengerActivity) { modelState ->
+
+                viewBinding {
+                    progressBar.visibility = View.INVISIBLE
+                }
+
                 when (modelState) {
                     ModelState.Init -> {
                         viewBinding {
@@ -118,6 +124,11 @@ class MessengerActivity : AppCompatActivity() {
                         viewBinding {
                             controlBar.hide()
                             recyclerViewUnc.showLoading()
+                        }
+                    }
+                    ModelState.Updating -> {
+                        viewBinding {
+                            progressBar.visibility = View.VISIBLE
                         }
                     }
                     is ModelState.Failure -> {
@@ -132,7 +143,7 @@ class MessengerActivity : AppCompatActivity() {
                             recyclerViewUnc.showData(modelState.data)
                         }
                     }
-                    is ModelState.Update -> {
+                    is ModelState.Updated -> {
                         viewBinding {
                             controlBar.show(modelState.data)
                             recyclerViewUnc.showData(modelState.data)
@@ -150,15 +161,19 @@ class MessengerActivity : AppCompatActivity() {
      */
     private fun RecyclerView.setup() {
         itemAnimator = null
-        adapter = smartAdapter
+
+        // todo обратить внимание, что адаптер назначаем после LayoutManager'а иначе
+        // todo будет крэш в PagedSmartAdapter.
         layoutManager = NotificationsLayoutManager(context)
+        adapter = smartAdapter
+
         val touchHelper = NotificationTouchHelper(context)
         addOnItemTouchListener(touchHelper)
         addOnScrollListener(touchHelper)
     }
 
     /**
-     * Пока нет реальных данных, то показываем анимированную заглушку.
+     * Пока нет реальных данных, то показываем анимированную Shimmer-заглушку.
      */
     private fun RecyclerView.showLoading() {
         val animationController =
@@ -338,6 +353,10 @@ class MessengerActivity : AppCompatActivity() {
                             is AdapterEvent -> {
                                 dispatchAdapterEvent(event)
                             }
+                            is TakeMore -> {
+                                // todo запросить у модели новую страницу
+                                viewModel.fetchMore()
+                            }
                             else -> {
                                 throw IllegalArgumentException("Unknown event type")
                             }
@@ -353,5 +372,6 @@ class MessengerActivity : AppCompatActivity() {
         private const val OFFSET_HOR = 12
         private const val OFFSET_VER = 2
         private const val EXPAND_AREA = 18
+        private const val PAGING_PREFETCH_DISTANCE = 10
     }
 }
