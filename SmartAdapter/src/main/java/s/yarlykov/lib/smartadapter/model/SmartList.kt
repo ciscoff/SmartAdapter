@@ -35,14 +35,13 @@ class SmartList : ArrayList<ListItem>() {
         insert(size, BindableItem(data, controller))
     }
 
-//    fun <T : Any, C : BindableItemController<T, BindableViewHolder<T>>> addItems(
-//        items: List<BindableItem<T, BindableViewHolder<T>>>
-//    ) {
-//        items.forEach { item ->
-//            this.insert(size, item)
-//        }
-//    }
-
+    /**
+     * Добавить список элементов с данными
+     *
+     * @param T - тип данных
+     * @param H - ViewHolder
+     * @param items - список добаляемых элементов
+     */
     fun <T : Any, H : BindableViewHolder<T>> addItems(items: List<BindableItem<T, H>>) {
         items.forEach { item -> this.insert(size, item) }
     }

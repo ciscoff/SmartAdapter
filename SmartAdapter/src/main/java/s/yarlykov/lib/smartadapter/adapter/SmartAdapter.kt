@@ -10,9 +10,9 @@ import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import s.yarlykov.lib.smartadapter.controller.BaseController
-import s.yarlykov.lib.smartadapter.holder.BaseViewHolder
 import s.yarlykov.lib.smartadapter.events.EventWrapper
 import s.yarlykov.lib.smartadapter.events.SmartCallback
+import s.yarlykov.lib.smartadapter.holder.BaseViewHolder
 import s.yarlykov.lib.smartadapter.model.SmartList
 import s.yarlykov.lib.smartadapter.model.item.BaseItem
 
@@ -38,7 +38,7 @@ import s.yarlykov.lib.smartadapter.model.item.BaseItem
  * @property overflowStrategy - поведение при переполненном буфере collectorFlow
  */
 
-class SmartAdapter(
+open class SmartAdapter(
     private val callback: SmartCallback<Any?>? = null,
     private val eventsReplay: Int = 1,
     private val overflowStrategy: BufferOverflow = BufferOverflow.DROP_OLDEST
@@ -72,7 +72,7 @@ class SmartAdapter(
      * - shared flow
      * - callback
      */
-    private val collector = object : Collector, SmartCallback<Any?> {
+    protected val collector: SmartCollector = object : SmartCollector {
 
         override val collectorRx: PublishSubject<EventWrapper<Any>> by lazy {
             PublishSubject.create()

@@ -66,6 +66,35 @@ class MessengerViewModel : ViewModel() {
         }
     }
 
+    fun fetchMore() {
+        // Не реагировать на пагинацию, если нет сообщений в списке
+        if(modelState.value !is ModelState.Success &&
+            modelState.value !is ModelState.Updated) {
+            return
+        }
+
+        viewModelScope.launch {
+            val pageModel = ModelGenerator.nextPage(model.lastIndex, PAGE_SIZE)
+
+            if (pageModel.isNotEmpty()) {
+                val filteredModel = model.filterIsInstance<MockMessage.Data>()
+
+                model.apply {
+                    clear()
+                    addAll(groupByDate(filteredModel + pageModel))
+                }
+
+                // Показываем начало загрузки. Можно в ответ покрутить ProgressBar.
+                modelStateMutable.value = ModelState.Updating
+
+                // Имитация длительной загрузки и обновление модели.
+                delay(1000)
+
+                modelStateMutable.value = ModelState.Updated(model)
+            }
+        }
+    }
+
     fun onUserAction(action: UserAction) {
         when (action) {
             UserAction.MarkAllAsRead -> {
@@ -176,5 +205,6 @@ class MessengerViewModel : ViewModel() {
     companion object {
         private const val LOAD_DELAY = 2000L
         private const val MODEL_SIZE = 30
+        private const val PAGE_SIZE = 10
     }
 }

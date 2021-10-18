@@ -15,6 +15,8 @@ object ModelGenerator {
     private val dateTimeFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern(dateTimeFormat)
     private val dateFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern(dateFormat)
 
+    private var lastDate: ZonedDateTime = ZonedDateTime.now()
+
     fun createModel(quantity: Int = 10, date: LocalDate): List<MockMessage> {
 
         val messages = mutableListOf<MockMessage>()
@@ -25,9 +27,19 @@ object ModelGenerator {
         repeat(n) { i ->
             messages.addAll(messages.size, generate(MESSAGES_PER_DAY, date.daysAgo(i.toLong())))
         }
-        messages.addAll(messages.size, generate(m, date.daysAgo(n.toLong())))
+
+        lastDate = date.daysAgo(n.toLong())
+        messages.addAll(messages.size, generate(m, lastDate))
 
         return messages
+    }
+
+    /**
+     * TODO Здесь параметр from не используется, но в реальных условиях будет востребован
+     * TODO для создания запросов в REST.
+     */
+    fun nextPage(from: Int, pageSize: Int): List<MockMessage> {
+        return createModel(pageSize, lastDate.toLocalDate())
     }
 
     private fun generate(times: Int, date: ZonedDateTime): List<MockMessage> {
