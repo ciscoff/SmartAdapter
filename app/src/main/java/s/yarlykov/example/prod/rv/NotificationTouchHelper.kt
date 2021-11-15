@@ -122,7 +122,7 @@ class NotificationTouchHelper(val context: Context) :
                 // из исходного состояния и из состояния ожидания.
                 val dX = event.x - prevX
                 val translationX = dX + upperLayer.translationX
-                val maxTranslation = getMaxTranslation(holder.itemView, translationX.toInt())
+                val maxTranslation = getMaxTranslation(holder, translationX.toInt())
 
                 upperLayer.translationX =
                     if (abs(translationX) > maxTranslation) {
@@ -220,6 +220,22 @@ class NotificationTouchHelper(val context: Context) :
         val margin = if (dX > 0) lp.leftMargin else lp.rightMargin
 
         return button.width + margin * 2
+    }
+
+    /**
+     * Bug fix:
+     * --------
+     * Bug description: Если сначала потянули не-isEditable элемент ВЛЕВО, а затем, не отпуская
+     * пальца, сменили направление и потянули вправо, то становится видимой левая кнопка, но она
+     * не должна быть видна у не-isEditable элементов.
+     *
+     * Fix description: Если у нас не-isEditable элемент и его тянут вправо, то его максимально
+     * допустимое смешение в этом направлении устанавливаем в 0
+     */
+    private fun getMaxTranslation(holder: NotificationController.Holder, dX: Int): Int {
+        return if(holder.isEditable.not() && dX > 0) {
+            0
+        } else getMaxTranslation(holder.itemView, dX)
     }
 
     /**
